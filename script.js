@@ -249,44 +249,44 @@ async function registerFace(event) {
             height: video.height
         });
         const detection = resizedDetections[0];
-        const box = detection.detection.box;
+        // const box = detection.detection.box;
         
-        // 顔の領域をキャプチャ
-        const ctx = capturedFaceCanvas.getContext('2d');
-        ctx.clearRect(0, 0, capturedFaceCanvas.width, capturedFaceCanvas.height);
+        // // 顔の領域をキャプチャ
+        // const ctx = capturedFaceCanvas.getContext('2d');
+        // ctx.clearRect(0, 0, capturedFaceCanvas.width, capturedFaceCanvas.height);
         
-        // 顔の領域をビデオからキャプチャしてキャンバスに描画
-        ctx.drawImage(
-            video, 
-            box.x, box.y, box.width, box.height,
-            0, 0, capturedFaceCanvas.width, capturedFaceCanvas.height
-        );
+        // // 顔の領域をビデオからキャプチャしてキャンバスに描画
+        // ctx.drawImage(
+        //     video, 
+        //     box.x, box.y, box.width, box.height,
+        //     0, 0, capturedFaceCanvas.width, capturedFaceCanvas.height
+        // );
         
         // 顔特徴量を保存
         capturedFaceDescriptor = detection.descriptor;
         
         // 既存のIDをチェック
-        const existingFace = registeredFaces.find(face => face.id === userId);
-        if (existingFace) {
-            if (!confirm(`ID "${userId}" は既に登録されています。上書きしますか？`)) {
-                return;
-            }
-            // 既存の顔情報を削除
-            registeredFaces = registeredFaces.filter(face => face.id !== userId);
-        }
+        // const existingFace = registeredFaces.find(face => face.id === userId);
+        // if (existingFace) {
+        //     if (!confirm(`ID "${userId}" は既に登録されています。上書きしますか？`)) {
+        //         return;
+        //     }
+        //     // 既存の顔情報を削除
+        //     registeredFaces = registeredFaces.filter(face => face.id !== userId);
+        // }
         
         // キャプチャした顔画像をデータURLとして取得
-        const faceImageUrl = capturedFaceCanvas.toDataURL('image/png');
+        // const faceImageUrl = capturedFaceCanvas.toDataURL('image/png');
         
         // 新しい顔情報を登録
-        const newFace = {
-            id: userId,
-            descriptor: Array.from(capturedFaceDescriptor),
-            imageUrl: faceImageUrl,
-            timestamp: new Date().toISOString()
-        };
+        // const newFace = {
+        //     id: userId,
+        //     descriptor: Array.from(capturedFaceDescriptor),
+        //     imageUrl: faceImageUrl,
+        //     timestamp: new Date().toISOString()
+        // };
         
-        registeredFaces.push(newFace);
+        // registeredFaces.push(newFace);
         
         // Google Apps Scriptに保存
         saveRegisteredFaces(userId, Array.from(capturedFaceDescriptor));
@@ -296,7 +296,7 @@ async function registerFace(event) {
         
         // フォームをリセット
         userIdInput.value = '';
-        ctx.clearRect(0, 0, capturedFaceCanvas.width, capturedFaceCanvas.height);
+        // ctx.clearRect(0, 0, capturedFaceCanvas.width, capturedFaceCanvas.height);
         capturedFaceDescriptor = null;
         
         alert(`ID "${userId}" の顔情報が登録されました。`);
@@ -312,13 +312,10 @@ async function saveRegisteredFaces(memberId, descriptor) {
     try {
         const response = await fetch(apiUrl, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
             body: JSON.stringify({
                 action: 'registerFace',
                 memberId: memberId,
-                descriptor: descriptor
+                descriptor: JSON.stringify(descriptor)
             })
         });
         
