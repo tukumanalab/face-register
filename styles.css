@@ -85,6 +85,7 @@ button:disabled {
 /* カメラセクション内のフォーム */
 #camera-section form {
     margin-top: 20px;
+    text-align: center;
 }
 
 #captured-face-container {
@@ -97,18 +98,20 @@ button:disabled {
     background-color: #f9f9f9;
 }
 
-.form-group {
+.form-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
     margin-bottom: 15px;
 }
 
 label {
-    display: block;
-    margin-bottom: 5px;
     font-weight: bold;
 }
 
 input[type="text"] {
-    width: 50%;
+    width: 150px;
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
