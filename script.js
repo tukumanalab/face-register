@@ -14,14 +14,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     overlay = document.getElementById('overlay');
     capturedFaceCanvas = document.getElementById('captured-face');
     
-    const startCameraBtn = document.getElementById('start-camera');
     const registerForm = document.getElementById('register-form');
     
     // face-api.jsのモデルを読み込む
     await loadModels();
     
     // イベントリスナーの設定
-    startCameraBtn.addEventListener('click', toggleCamera);
     registerForm.addEventListener('submit', registerFace);
     
     // ローカルストレージから登録済み顔情報を読み込む
@@ -48,49 +46,38 @@ async function loadModels() {
     }
 }
 
-// カメラの起動/停止を切り替える関数
+// カメラを起動する関数
 async function toggleCamera() {
-    const startCameraBtn = document.getElementById('start-camera');
-    
-    if (stream) {
-        // カメラを停止
-        stopCamera();
-        startCameraBtn.textContent = 'カメラ起動';
-    } else {
-        // カメラを起動
-        try {
-            // カメラへのアクセス許可を明示的に要求
-            console.log('カメラへのアクセスを要求しています...');
-            
-            // 制約を指定
-            const constraints = { 
-                audio: false,
-                video: { 
-                    width: { ideal: 320 },
-                    height: { ideal: 240 },
-                    facingMode: 'user'
-                } 
-            };
-            
-            // カメラストリームを取得
-            stream = await navigator.mediaDevices.getUserMedia(constraints);
-            console.log('カメラストリームを取得しました:', stream);
-            
-            // ビデオ要素にストリームを設定
-            video.srcObject = stream;
-            video.onloadedmetadata = () => {
-                video.play();
-                console.log('ビデオの再生を開始しました');
-            };
-            
-            startCameraBtn.textContent = 'カメラ停止';
-            
-            // 顔検出を開始
-            startFaceDetection();
-        } catch (error) {
-            console.error('カメラの起動に失敗しました:', error);
-            alert('カメラの起動に失敗しました。カメラへのアクセス許可を確認してください。');
-        }
+    try {
+        // カメラへのアクセス許可を明示的に要求
+        console.log('カメラへのアクセスを要求しています...');
+        
+        // 制約を指定
+        const constraints = { 
+            audio: false,
+            video: { 
+                width: { ideal: 320 },
+                height: { ideal: 240 },
+                facingMode: 'user'
+            } 
+        };
+        
+        // カメラストリームを取得
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+        console.log('カメラストリームを取得しました:', stream);
+        
+        // ビデオ要素にストリームを設定
+        video.srcObject = stream;
+        video.onloadedmetadata = () => {
+            video.play();
+            console.log('ビデオの再生を開始しました');
+        };
+        
+        // 顔検出を開始
+        startFaceDetection();
+    } catch (error) {
+        console.error('カメラの起動に失敗しました:', error);
+        alert('カメラの起動に失敗しました。カメラへのアクセス許可を確認してください。');
     }
 }
 
@@ -172,7 +159,7 @@ async function registerFace(event) {
     const userId = userIdInput.value.trim();
     
     if (!userId) {
-        alert('ユーザーIDを入力してください。');
+        alert('IDを入力してください。');
         return;
     }
     
