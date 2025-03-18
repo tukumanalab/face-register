@@ -71,8 +71,8 @@ async function toggleCamera() {
             const constraints = { 
                 audio: false,
                 video: { 
-                    width: { ideal: 300 },
-                    height: { ideal: 480 },
+                    width: { ideal: 320 },
+                    height: { ideal: 240 },
                     facingMode: 'user'
                 } 
             };
