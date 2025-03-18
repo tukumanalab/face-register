@@ -11,9 +11,17 @@ let isSingleFace = false;
 let registerBtn;
 let userIdInput;
 let registerStatus;
+let apiUrl = 'https://script.google.com/'; // デフォルトのURL
 
 // DOMが読み込まれたら実行
 document.addEventListener('DOMContentLoaded', async () => {
+    // URLパラメータからAPI URLを取得
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('url')) {
+        apiUrl = urlParams.get('url');
+        console.log('API URL設定:', apiUrl);
+    }
+    
     // 要素の取得
     video = document.getElementById('video');
     overlay = document.getElementById('overlay');
@@ -302,7 +310,7 @@ async function registerFace(event) {
 // 登録済み顔情報をGoogle Apps Scriptに保存する関数
 async function saveRegisteredFaces(memberId, descriptor) {
     try {
-        const response = await fetch('https://script.google.com/', {
+        const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -391,7 +399,7 @@ async function deleteFace(id) {
         
         try {
             // Google Apps Scriptに削除リクエストを送信
-            const response = await fetch('https://script.google.com/', {
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
