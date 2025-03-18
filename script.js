@@ -10,6 +10,7 @@ let isFaceDetected = false;
 let isSingleFace = false;
 let registerBtn;
 let userIdInput;
+let registerStatus;
 
 // DOMが読み込まれたら実行
 document.addEventListener('DOMContentLoaded', async () => {
@@ -19,6 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     capturedFaceCanvas = document.getElementById('captured-face');
     registerBtn = document.getElementById('register-btn');
     userIdInput = document.getElementById('user-id');
+    registerStatus = document.getElementById('register-status');
     
     // 初期状態では登録ボタンを無効化
     registerBtn.disabled = true;
@@ -178,7 +180,25 @@ function updateRegisterButtonState() {
     
     // 顔が1つだけ検出されていて、かつユーザーIDが入力されている場合のみボタンを有効化
     if (registerBtn) {
-        registerBtn.disabled = !(isFaceDetected && isSingleFace && isUserIdEntered);
+        const canRegister = isFaceDetected && isSingleFace && isUserIdEntered;
+        registerBtn.disabled = !canRegister;
+        
+        // 登録ボタンが押せない理由を表示
+        if (registerStatus) {
+            if (!canRegister) {
+                let reason = '';
+                if (!isFaceDetected) {
+                    reason = '顔が検出されていません。カメラに顔を映してください。';
+                } else if (!isSingleFace) {
+                    reason = '複数の顔が検出されています。一人だけ映るようにしてください。';
+                } else if (!isUserIdEntered) {
+                    reason = 'IDを入力してください。';
+                }
+                registerStatus.textContent = reason;
+            } else {
+                registerStatus.textContent = '';
+            }
+        }
     }
 }
 
