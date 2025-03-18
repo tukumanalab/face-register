@@ -29,6 +29,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // ローカルストレージから登録済み顔情報を読み込む
     loadRegisteredFaces();
+    
+    // ページ読み込み時に自動的にカメラを起動
+    toggleCamera();
 });
 
 // face-api.jsのモデルを読み込む関数
@@ -68,7 +71,7 @@ async function toggleCamera() {
             const constraints = { 
                 audio: false,
                 video: { 
-                    width: { ideal: 640 },
+                    width: { ideal: 300 },
                     height: { ideal: 480 },
                     facingMode: 'user'
                 } 
