@@ -39,8 +39,8 @@ section {
 #video-container {
     position: relative;
     margin: 0 auto;
-    width: 640px;
-    height: 480px;
+    width: 320px;
+    height: 240px;
 }
 
 #video {
@@ -82,11 +82,9 @@ button:disabled {
     cursor: not-allowed;
 }
 
-/* 登録セクション */
-#register-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+/* カメラセクション内のフォーム */
+#camera-section form {
+    margin-top: 20px;
 }
 
 #captured-face-container {

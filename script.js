@@ -15,8 +15,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     capturedFaceCanvas = document.getElementById('captured-face');
     
     const startCameraBtn = document.getElementById('start-camera');
-    const captureBtn = document.getElementById('capture');
-    const registerBtn = document.getElementById('register-btn');
     const registerForm = document.getElementById('register-form');
     
     // face-api.jsのモデルを読み込む
@@ -24,11 +22,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // イベントリスナーの設定
     startCameraBtn.addEventListener('click', toggleCamera);
-    captureBtn.addEventListener('click', captureFace);
     registerForm.addEventListener('submit', registerFace);
     
     // ローカルストレージから登録済み顔情報を読み込む
     loadRegisteredFaces();
+    
+    // ページ読み込み時に自動的にカメラを起動
+    toggleCamera();
 });
 
 // face-api.jsのモデルを読み込む関数
@@ -51,13 +51,11 @@ async function loadModels() {
 // カメラの起動/停止を切り替える関数
 async function toggleCamera() {
     const startCameraBtn = document.getElementById('start-camera');
-    const captureBtn = document.getElementById('capture');
     
     if (stream) {
         // カメラを停止
         stopCamera();
         startCameraBtn.textContent = 'カメラ起動';
-        captureBtn.disabled = true;
     } else {
         // カメラを起動
         try {
@@ -68,8 +66,8 @@ async function toggleCamera() {
             const constraints = { 
                 audio: false,
                 video: { 
-                    width: { ideal: 640 },
-                    height: { ideal: 480 },
+                    width: { ideal: 320 },
+                    height: { ideal: 240 },
                     facingMode: 'user'
                 } 
             };
@@ -86,7 +84,6 @@ async function toggleCamera() {
             };
             
             startCameraBtn.textContent = 'カメラ停止';
-            captureBtn.disabled = false;
             
             // 顔検出を開始
             startFaceDetection();
@@ -162,9 +159,20 @@ function stopFaceDetection() {
     }
 }
 
-// 顔をキャプチャする関数
-async function captureFace() {
+// 顔情報を登録する関数
+async function registerFace(event) {
+    event.preventDefault();
+    
     if (!stream) {
+        alert('カメラが起動していません。カメラを起動してください。');
+        return;
+    }
+    
+    const userIdInput = document.getElementById('user-id');
+    const userId = userIdInput.value.trim();
+    
+    if (!userId) {
+        alert('ユーザーIDを入力してください。');
         return;
     }
     
@@ -206,69 +214,46 @@ async function captureFace() {
         // 顔特徴量を保存
         capturedFaceDescriptor = detection.descriptor;
         
-        // 登録ボタンを有効化
-        document.getElementById('register-btn').disabled = false;
+        // 既存のIDをチェック
+        const existingFace = registeredFaces.find(face => face.id === userId);
+        if (existingFace) {
+            if (!confirm(`ID "${userId}" は既に登録されています。上書きしますか？`)) {
+                return;
+            }
+            // 既存の顔情報を削除
+            registeredFaces = registeredFaces.filter(face => face.id !== userId);
+        }
+        
+        // キャプチャした顔画像をデータURLとして取得
+        const faceImageUrl = capturedFaceCanvas.toDataURL('image/png');
+        
+        // 新しい顔情報を登録
+        const newFace = {
+            id: userId,
+            descriptor: Array.from(capturedFaceDescriptor),
+            imageUrl: faceImageUrl,
+            timestamp: new Date().toISOString()
+        };
+        
+        registeredFaces.push(newFace);
+        
+        // ローカルストレージに保存
+        saveRegisteredFaces();
+        
+        // 登録済み顔情報を更新
+        updateRegisteredFacesList();
+        
+        // フォームをリセット
+        userIdInput.value = '';
+        ctx.clearRect(0, 0, capturedFaceCanvas.width, capturedFaceCanvas.height);
+        capturedFaceDescriptor = null;
+        
+        alert(`ID "${userId}" の顔情報が登録されました。`);
         
     } catch (error) {
-        console.error('顔のキャプチャに失敗しました:', error);
-        alert('顔のキャプチャに失敗しました。再試行してください。');
+        console.error('顔の登録に失敗しました:', error);
+        alert('顔の登録に失敗しました。再試行してください。');
     }
-}
-
-// 顔情報を登録する関数
-async function registerFace(event) {
-    event.preventDefault();
-    
-    const userIdInput = document.getElementById('user-id');
-    const userId = userIdInput.value.trim();
-    
-    if (!userId) {
-        alert('ユーザーIDを入力してください。');
-        return;
-    }
-    
-    if (!capturedFaceDescriptor) {
-        alert('顔をキャプチャしてください。');
-        return;
-    }
-    
-    // 既存のIDをチェック
-    const existingFace = registeredFaces.find(face => face.id === userId);
-    if (existingFace) {
-        if (!confirm(`ID "${userId}" は既に登録されています。上書きしますか？`)) {
-            return;
-        }
-        // 既存の顔情報を削除
-        registeredFaces = registeredFaces.filter(face => face.id !== userId);
-    }
-    
-    // キャプチャした顔画像をデータURLとして取得
-    const faceImageUrl = capturedFaceCanvas.toDataURL('image/png');
-    
-    // 新しい顔情報を登録
-    const newFace = {
-        id: userId,
-        descriptor: Array.from(capturedFaceDescriptor),
-        imageUrl: faceImageUrl,
-        timestamp: new Date().toISOString()
-    };
-    
-    registeredFaces.push(newFace);
-    
-    // ローカルストレージに保存
-    saveRegisteredFaces();
-    
-    // 登録済み顔情報を更新
-    updateRegisteredFacesList();
-    
-    // フォームをリセット
-    userIdInput.value = '';
-    const ctx = capturedFaceCanvas.getContext('2d');
-    ctx.clearRect(0, 0, capturedFaceCanvas.width, capturedFaceCanvas.height);
-    capturedFaceDescriptor = null;
-    document.getElementById('register-btn').disabled = true;
-    
-    alert(`ID "${userId}" の顔情報が登録されました。`);
 }
 
 // 登録済み顔情報をローカルストレージに保存する関数
