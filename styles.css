@@ -82,11 +82,9 @@ button:disabled {
     cursor: not-allowed;
 }
 
-/* 登録セクション */
-#register-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+/* カメラセクション内のフォーム */
+#camera-section form {
+    margin-top: 20px;
 }
 
 #captured-face-container {
