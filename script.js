@@ -6,6 +6,8 @@ let stream;
 let faceDetectionInterval;
 let capturedFaceDescriptor = null;
 let registeredFaces = [];
+let isFaceDetected = false;
+let registerBtn;
 
 // DOMが読み込まれたら実行
 document.addEventListener('DOMContentLoaded', async () => {
@@ -13,6 +15,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     video = document.getElementById('video');
     overlay = document.getElementById('overlay');
     capturedFaceCanvas = document.getElementById('captured-face');
+    registerBtn = document.getElementById('register-btn');
+    
+    // 初期状態では登録ボタンを無効化
+    registerBtn.disabled = true;
     
     const registerForm = document.getElementById('register-form');
     
@@ -118,7 +124,13 @@ function startFaceDetection() {
             const ctx = overlay.getContext('2d');
             ctx.clearRect(0, 0, overlay.width, overlay.height);
             
-            if (detections.length > 0) {
+            // 顔が検出されたかどうかを更新
+            isFaceDetected = detections.length > 0;
+            
+            // 登録ボタンの有効/無効を切り替え
+            registerBtn.disabled = !isFaceDetected;
+            
+            if (isFaceDetected) {
                 // 検出された顔に枠を描画
                 const resizedDetections = faceapi.resizeResults(detections, {
                     width: overlay.width,
@@ -143,6 +155,12 @@ function stopFaceDetection() {
     if (faceDetectionInterval) {
         clearInterval(faceDetectionInterval);
         faceDetectionInterval = null;
+    }
+    
+    // 顔検出が停止されたら登録ボタンを無効化
+    isFaceDetected = false;
+    if (registerBtn) {
+        registerBtn.disabled = true;
     }
 }
 
