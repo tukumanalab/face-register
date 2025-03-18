@@ -41,6 +41,7 @@ section {
     margin: 0 auto;
     width: 320px;
     height: 240px;
+    transform: scaleX(-1); /* カメラの左右反転 */
 }
 
 #video {
