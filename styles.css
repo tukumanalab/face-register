@@ -119,6 +119,14 @@ input[type="text"] {
     font-size: 16px;
 }
 
+.status-message {
+    margin-top: 10px;
+    text-align: center;
+    color: #e74c3c;
+    font-size: 14px;
+    min-height: 20px;
+}
+
 /* 登録済み顔情報セクション */
 #faces-list {
     display: grid;

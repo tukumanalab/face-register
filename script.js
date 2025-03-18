@@ -6,6 +6,11 @@ let stream;
 let faceDetectionInterval;
 let capturedFaceDescriptor = null;
 let registeredFaces = [];
+let isFaceDetected = false;
+let isSingleFace = false;
+let registerBtn;
+let userIdInput;
+let registerStatus;
 
 // DOMが読み込まれたら実行
 document.addEventListener('DOMContentLoaded', async () => {
@@ -13,6 +18,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     video = document.getElementById('video');
     overlay = document.getElementById('overlay');
     capturedFaceCanvas = document.getElementById('captured-face');
+    registerBtn = document.getElementById('register-btn');
+    userIdInput = document.getElementById('user-id');
+    registerStatus = document.getElementById('register-status');
+    
+    // 初期状態では登録ボタンを無効化
+    registerBtn.disabled = true;
+    
+    // ユーザーIDの入力状態を監視
+    userIdInput.addEventListener('input', updateRegisterButtonState);
     
     const registerForm = document.getElementById('register-form');
     
@@ -118,7 +132,14 @@ function startFaceDetection() {
             const ctx = overlay.getContext('2d');
             ctx.clearRect(0, 0, overlay.width, overlay.height);
             
-            if (detections.length > 0) {
+            // 顔が検出されたかどうかと、顔が1つだけかどうかを更新
+            isFaceDetected = detections.length > 0;
+            isSingleFace = detections.length === 1;
+            
+            // 登録ボタンの状態を更新
+            updateRegisterButtonState();
+            
+            if (isFaceDetected) {
                 // 検出された顔に枠を描画
                 const resizedDetections = faceapi.resizeResults(detections, {
                     width: overlay.width,
@@ -143,6 +164,41 @@ function stopFaceDetection() {
     if (faceDetectionInterval) {
         clearInterval(faceDetectionInterval);
         faceDetectionInterval = null;
+    }
+    
+    // 顔検出が停止されたら状態をリセット
+    isFaceDetected = false;
+    isSingleFace = false;
+    if (registerBtn) {
+        updateRegisterButtonState();
+    }
+}
+
+// 登録ボタンの状態を更新する関数
+function updateRegisterButtonState() {
+    const isUserIdEntered = userIdInput && userIdInput.value.trim() !== '';
+    
+    // 顔が1つだけ検出されていて、かつユーザーIDが入力されている場合のみボタンを有効化
+    if (registerBtn) {
+        const canRegister = isFaceDetected && isSingleFace && isUserIdEntered;
+        registerBtn.disabled = !canRegister;
+        
+        // 登録ボタンが押せない理由を表示
+        if (registerStatus) {
+            if (!canRegister) {
+                let reason = '';
+                if (!isFaceDetected) {
+                    reason = '顔が検出されていません。カメラに顔を映してください。';
+                } else if (!isSingleFace) {
+                    reason = '複数の顔が検出されています。一人だけ映るようにしてください。';
+                } else if (!isUserIdEntered) {
+                    reason = 'IDを入力してください。';
+                }
+                registerStatus.textContent = reason;
+            } else {
+                registerStatus.textContent = '';
+            }
+        }
     }
 }
 
