@@ -280,8 +280,8 @@ async function registerFace(event) {
         
         registeredFaces.push(newFace);
         
-        // ローカルストレージに保存
-        saveRegisteredFaces();
+        // Google Apps Scriptに保存
+        saveRegisteredFaces(userId, Array.from(capturedFaceDescriptor));
         
         // 登録済み顔情報を更新
         updateRegisteredFacesList();
@@ -299,9 +299,37 @@ async function registerFace(event) {
     }
 }
 
-// 登録済み顔情報をローカルストレージに保存する関数
-function saveRegisteredFaces() {
-    localStorage.setItem('registeredFaces', JSON.stringify(registeredFaces));
+// 登録済み顔情報をGoogle Apps Scriptに保存する関数
+async function saveRegisteredFaces(memberId, descriptor) {
+    try {
+        const response = await fetch('https://script.google.com/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                action: 'registerFace',
+                memberId: memberId,
+                descriptor: descriptor
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('Google Apps Scriptへの保存結果:', result);
+        
+        // ローカルストレージにも保存（表示用）
+        localStorage.setItem('registeredFaces', JSON.stringify(registeredFaces));
+    } catch (error) {
+        console.error('Google Apps Scriptへの保存に失敗しました:', error);
+        alert('サーバーへの保存に失敗しました。ネットワーク接続を確認してください。');
+        
+        // エラー時もローカルには保存
+        localStorage.setItem('registeredFaces', JSON.stringify(registeredFaces));
+    }
 }
 
 // ローカルストレージから登録済み顔情報を読み込む関数
@@ -356,12 +384,40 @@ function updateRegisteredFacesList() {
 }
 
 // 顔情報を削除する関数
-function deleteFace(id) {
+async function deleteFace(id) {
     if (confirm(`ID "${id}" の顔情報を削除しますか？`)) {
+        // ローカル表示用の配列から削除
         registeredFaces = registeredFaces.filter(face => face.id !== id);
-        saveRegisteredFaces();
-        updateRegisteredFacesList();
-        alert(`ID "${id}" の顔情報が削除されました。`);
+        
+        try {
+            // Google Apps Scriptに削除リクエストを送信
+            const response = await fetch('https://script.google.com/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'deleteFace',
+                    memberId: id
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            // ローカルストレージも更新
+            localStorage.setItem('registeredFaces', JSON.stringify(registeredFaces));
+            updateRegisteredFacesList();
+            alert(`ID "${id}" の顔情報が削除されました。`);
+        } catch (error) {
+            console.error('顔情報の削除に失敗しました:', error);
+            alert('サーバーからの削除に失敗しました。ネットワーク接続を確認してください。');
+            
+            // エラー時もローカルストレージは更新
+            localStorage.setItem('registeredFaces', JSON.stringify(registeredFaces));
+            updateRegisteredFacesList();
+        }
     }
 }
 
