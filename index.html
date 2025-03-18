@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>顔情報登録アプリ</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Face APIライブラリの読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
+</head>
+<body>
+    <header>
+        <h1>顔情報登録アプリ</h1>
+    </header>
+    
+    <main>
+        <section id="camera-section">
+            <h2>カメラ</h2>
+            <div id="video-container">
+                <video id="video" width="640" height="480" autoplay muted></video>
+                <canvas id="overlay" width="640" height="480"></canvas>
+            </div>
+            <div id="controls">
+                <button id="start-camera">カメラ起動</button>
+                <button id="capture" disabled>キャプチャ</button>
+            </div>
+        </section>
+
+        <section id="register-section">
+            <h2>顔情報登録</h2>
+            <div id="captured-face-container">
+                <canvas id="captured-face" width="150" height="150"></canvas>
+            </div>
+            <form id="register-form">
+                <div class="form-group">
+                    <label for="user-id">ユーザーID:</label>
+                    <input type="text" id="user-id" required>
+                </div>
+                <button type="submit" id="register-btn" disabled>登録</button>
+            </form>
+        </section>
+
+        <section id="registered-faces">
+            <h2>登録済み顔情報</h2>
+            <div id="faces-list"></div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 顔情報登録アプリ</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
