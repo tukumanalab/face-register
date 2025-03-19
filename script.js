@@ -293,21 +293,13 @@ async function saveRegisteredFaces(memberId, descriptor) {
     } catch (error) {
         console.error('Google Apps Scriptへの保存に失敗しました:', error);
         alert('サーバーへの保存に失敗しました。ネットワーク接続を確認してください。');
-        
-        // エラー時もローカルには保存
-        localStorage.setItem('registeredFaces', JSON.stringify(registeredFaces));
     } finally {
-        // 登録処理が完了したら登録ボタンの状態を更新
+        // 登録処理が完了したらステータスメッセージをクリア
+        registerStatus.textContent = '';
+        lastStatusMessage = '';
+        
+        // 登録ボタンの状態を更新
         updateRegisterButtonState();
-    }
-}
-
-// ローカルストレージから登録済み顔情報を読み込む関数
-function loadRegisteredFaces() {
-    const savedFaces = localStorage.getItem('registeredFaces');
-    if (savedFaces) {
-        registeredFaces = JSON.parse(savedFaces);
-        updateRegisteredFacesList();
     }
 }
 
