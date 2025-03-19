@@ -274,7 +274,7 @@ async function saveRegisteredFaces(memberId, descriptor) {
         const response = await fetch(findUrl, {
             method: 'POST',
             body: JSON.stringify({
-                action: 'registerFace',
+                action: 'createFace',
                 memberId: memberId,
                 descriptor: JSON.stringify(descriptor)
             })
