@@ -11,6 +11,7 @@ let isSingleFace = false;
 let registerBtn;
 let userIdInput;
 let registerStatus;
+let lastStatusMessage = ''; // 前回のステータスメッセージを保存する変数
 let findUrl = '';
 
 // DOMが読み込まれたら実行
@@ -162,7 +163,7 @@ function startFaceDetection() {
         } catch (error) {
             console.error('顔検出中にエラーが発生しました:', error);
         }
-    }, 100);
+    }, 500); // 100ミリ秒から500ミリ秒に変更して更新頻度を下げる
 }
 
 // 顔検出を停止する関数
@@ -191,18 +192,22 @@ function updateRegisterButtonState() {
         
         // 登録ボタンが押せない理由を表示
         if (registerStatus) {
+            let newStatusMessage = '';
+            
             if (!canRegister) {
-                let reason = '';
                 if (!isFaceDetected) {
-                    reason = '顔が検出されていません。カメラに顔を映してください。';
+                    newStatusMessage = '顔が検出されていません。カメラに顔を映してください。';
                 } else if (!isSingleFace) {
-                    reason = '複数の顔が検出されています。一人だけ映るようにしてください。';
+                    newStatusMessage = '複数の顔が検出されています。一人だけ映るようにしてください。';
                 } else if (!isUserIdEntered) {
-                    reason = 'IDを入力してください。';
+                    newStatusMessage = 'IDを入力してください。';
                 }
-                registerStatus.textContent = reason;
-            } else {
-                registerStatus.textContent = '';
+            }
+            
+            // 前回のメッセージと異なる場合のみ更新
+            if (newStatusMessage !== lastStatusMessage) {
+                registerStatus.textContent = newStatusMessage;
+                lastStatusMessage = newStatusMessage;
             }
         }
     }
