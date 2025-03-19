@@ -22,6 +22,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log('API URL設定:', apiUrl);
     }
     
+    // URLパラメータからmemberIdを取得
+    if (urlParams.has('memberId')) {
+        const memberId = urlParams.get('memberId');
+        console.log('Member ID設定:', memberId);
+    }
+    
     // 要素の取得
     video = document.getElementById('video');
     overlay = document.getElementById('overlay');
@@ -29,6 +35,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     registerBtn = document.getElementById('register-btn');
     userIdInput = document.getElementById('user-id');
     registerStatus = document.getElementById('register-status');
+    
+    // URLパラメータからmemberIdが渡された場合、IDのテキストフィールドにデフォルト値として設定
+    if (urlParams.has('memberId')) {
+        userIdInput.value = urlParams.get('memberId');
+        // 入力状態を更新して登録ボタンの状態を更新
+        updateRegisterButtonState();
+    }
     
     // 初期状態では登録ボタンを無効化
     registerBtn.disabled = true;
