@@ -20,6 +20,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (urlParams.has('url')) {
         apiUrl = urlParams.get('url');
         console.log('API URL設定:', apiUrl);
+    } else if (urlParams.has('findUrl')) {
+        apiUrl = urlParams.get('findUrl');
+        console.log('API URL設定(findUrl):', apiUrl);
     }
     
     // 要素の取得
