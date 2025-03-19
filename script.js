@@ -225,6 +225,10 @@ async function registerFace(event) {
         return;
     }
     
+    // 登録処理中は登録ボタンを無効化
+    registerBtn.disabled = true;
+    registerStatus.textContent = '登録処理中...';
+    
     try {
         // 顔を検出
         const detections = await faceapi.detectAllFaces(video)
@@ -287,6 +291,9 @@ async function saveRegisteredFaces(memberId, descriptor) {
         
         // エラー時もローカルには保存
         localStorage.setItem('registeredFaces', JSON.stringify(registeredFaces));
+    } finally {
+        // 登録処理が完了したら登録ボタンの状態を更新
+        updateRegisterButtonState();
     }
 }
 
