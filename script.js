@@ -11,18 +11,14 @@ let isSingleFace = false;
 let registerBtn;
 let userIdInput;
 let registerStatus;
-let apiUrl = 'https://script.google.com/'; // デフォルトのURL
+let findUrl = '';
 
 // DOMが読み込まれたら実行
 document.addEventListener('DOMContentLoaded', async () => {
     // URLパラメータからAPI URLを取得（findUrlパラメータは必須）
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has('url')) {
-        apiUrl = urlParams.get('url');
-        console.log('API URL設定:', apiUrl);
-    } else if (urlParams.has('findUrl')) {
-        apiUrl = urlParams.get('findUrl');
-        console.log('API URL設定(findUrl):', apiUrl);
+    if (urlParams.has('findUrl')) {
+        findUrl = urlParams.get('findUrl');
     }
     
     // 要素の取得
@@ -54,9 +50,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // イベントリスナーの設定
     registerForm.addEventListener('submit', registerFace);
     
-    // ローカルストレージから登録済み顔情報を読み込む
-    loadRegisteredFaces();
-    
     // ページ読み込み時に自動的にカメラを起動
     toggleCamera();
 });
@@ -80,10 +73,7 @@ async function loadModels() {
 
 // カメラを起動する関数
 async function toggleCamera() {
-    try {
-        // カメラへのアクセス許可を明示的に要求
-        console.log('カメラへのアクセスを要求しています...');
-        
+    try {        
         // 制約を指定
         const constraints = { 
             audio: false,
@@ -96,13 +86,11 @@ async function toggleCamera() {
         
         // カメラストリームを取得
         stream = await navigator.mediaDevices.getUserMedia(constraints);
-        console.log('カメラストリームを取得しました:', stream);
         
         // ビデオ要素にストリームを設定
         video.srcObject = stream;
         video.onloadedmetadata = () => {
             video.play();
-            console.log('ビデオの再生を開始しました');
         };
         
         // 顔検出を開始
@@ -259,58 +247,12 @@ async function registerFace(event) {
             height: video.height
         });
         const detection = resizedDetections[0];
-        // const box = detection.detection.box;
-        
-        // // 顔の領域をキャプチャ
-        // const ctx = capturedFaceCanvas.getContext('2d');
-        // ctx.clearRect(0, 0, capturedFaceCanvas.width, capturedFaceCanvas.height);
-        
-        // // 顔の領域をビデオからキャプチャしてキャンバスに描画
-        // ctx.drawImage(
-        //     video, 
-        //     box.x, box.y, box.width, box.height,
-        //     0, 0, capturedFaceCanvas.width, capturedFaceCanvas.height
-        // );
         
         // 顔特徴量を保存
         capturedFaceDescriptor = detection.descriptor;
         
-        // 既存のIDをチェック
-        // const existingFace = registeredFaces.find(face => face.id === userId);
-        // if (existingFace) {
-        //     if (!confirm(`ID "${userId}" は既に登録されています。上書きしますか？`)) {
-        //         return;
-        //     }
-        //     // 既存の顔情報を削除
-        //     registeredFaces = registeredFaces.filter(face => face.id !== userId);
-        // }
-        
-        // キャプチャした顔画像をデータURLとして取得
-        // const faceImageUrl = capturedFaceCanvas.toDataURL('image/png');
-        
-        // 新しい顔情報を登録
-        // const newFace = {
-        //     id: userId,
-        //     descriptor: Array.from(capturedFaceDescriptor),
-        //     imageUrl: faceImageUrl,
-        //     timestamp: new Date().toISOString()
-        // };
-        
-        // registeredFaces.push(newFace);
-        
         // Google Apps Scriptに保存
-        saveRegisteredFaces(userId, Array.from(capturedFaceDescriptor));
-        
-        // 登録済み顔情報を更新
-        updateRegisteredFacesList();
-        
-        // フォームをリセット
-        userIdInput.value = '';
-        // ctx.clearRect(0, 0, capturedFaceCanvas.width, capturedFaceCanvas.height);
-        capturedFaceDescriptor = null;
-        
-        alert(`ID "${userId}" の顔情報が登録されました。`);
-        
+        saveRegisteredFaces(userId, Array.from(capturedFaceDescriptor));    
     } catch (error) {
         console.error('顔の登録に失敗しました:', error);
         alert('顔の登録に失敗しました。再試行してください。');
@@ -320,7 +262,7 @@ async function registerFace(event) {
 // 登録済み顔情報をGoogle Apps Scriptに保存する関数
 async function saveRegisteredFaces(memberId, descriptor) {
     try {
-        const response = await fetch(apiUrl, {
+        const response = await fetch(findUrl, {
             method: 'POST',
             body: JSON.stringify({
                 action: 'registerFace',
@@ -335,9 +277,10 @@ async function saveRegisteredFaces(memberId, descriptor) {
         
         const result = await response.json();
         console.log('Google Apps Scriptへの保存結果:', result);
-        
-        // ローカルストレージにも保存（表示用）
-        localStorage.setItem('registeredFaces', JSON.stringify(registeredFaces));
+
+        alert(`ID "${result.id}" の顔情報が登録されました。`);
+
+        capturedFaceDescriptor = null;         
     } catch (error) {
         console.error('Google Apps Scriptへの保存に失敗しました:', error);
         alert('サーバーへの保存に失敗しました。ネットワーク接続を確認してください。');
@@ -353,86 +296,6 @@ function loadRegisteredFaces() {
     if (savedFaces) {
         registeredFaces = JSON.parse(savedFaces);
         updateRegisteredFacesList();
-    }
-}
-
-// 登録済み顔情報リストを更新する関数
-function updateRegisteredFacesList() {
-    const facesList = document.getElementById('faces-list');
-    facesList.innerHTML = '';
-    
-    if (registeredFaces.length === 0) {
-        facesList.innerHTML = '<p>登録された顔情報はありません。</p>';
-        return;
-    }
-    
-    // 登録日時の新しい順にソート
-    const sortedFaces = [...registeredFaces].sort((a, b) => {
-        return new Date(b.timestamp) - new Date(a.timestamp);
-    });
-    
-    // 各顔情報のカードを作成
-    sortedFaces.forEach(face => {
-        const faceCard = document.createElement('div');
-        faceCard.className = 'face-card';
-        
-        const faceImage = document.createElement('img');
-        faceImage.className = 'face-image';
-        faceImage.src = face.imageUrl;
-        faceImage.alt = `${face.id}の顔`;
-        
-        const faceId = document.createElement('div');
-        faceId.className = 'face-id';
-        faceId.textContent = face.id;
-        
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'delete-btn';
-        deleteBtn.textContent = '削除';
-        deleteBtn.addEventListener('click', () => deleteFace(face.id));
-        
-        faceCard.appendChild(faceImage);
-        faceCard.appendChild(faceId);
-        faceCard.appendChild(deleteBtn);
-        
-        facesList.appendChild(faceCard);
-    });
-}
-
-// 顔情報を削除する関数
-async function deleteFace(id) {
-    if (confirm(`ID "${id}" の顔情報を削除しますか？`)) {
-        // ローカル表示用の配列から削除
-        registeredFaces = registeredFaces.filter(face => face.id !== id);
-        
-        try {
-            // Google Apps Scriptに削除リクエストを送信
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    action: 'deleteFace',
-                    memberId: id
-                })
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            // ローカルストレージも更新
-            localStorage.setItem('registeredFaces', JSON.stringify(registeredFaces));
-            updateRegisteredFacesList();
-            alert(`ID "${id}" の顔情報が削除されました。`);
-        } catch (error) {
-            console.error('顔情報の削除に失敗しました:', error);
-            alert('サーバーからの削除に失敗しました。ネットワーク接続を確認してください。');
-            
-            // エラー時もローカルストレージは更新
-            localStorage.setItem('registeredFaces', JSON.stringify(registeredFaces));
-            updateRegisteredFacesList();
-        }
     }
 }
 
