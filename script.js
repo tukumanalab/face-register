@@ -287,12 +287,18 @@ async function saveRegisteredFaces(memberId, descriptor) {
         const result = await response.json();
         console.log('Google Apps Scriptへの保存結果:', result);
 
+        // サーバーからエラーレスポンスが返ってきた場合
+        if (result.error === true && result.message) {
+            throw new Error(result.message);
+        }
+
         alert(`ID "${result.id}" の顔情報が登録されました。`);
 
         capturedFaceDescriptor = null;         
     } catch (error) {
         console.error('Google Apps Scriptへの保存に失敗しました:', error);
-        alert('サーバーへの保存に失敗しました。ネットワーク接続を確認してください。');
+        // エラーメッセージを表示（サーバーからのエラーメッセージがある場合はそれを表示）
+        alert(`サーバーへの保存に失敗しました: ${error.message}`);
     } finally {
         // 登録処理が完了したらステータスメッセージをクリア
         registerStatus.textContent = '';
