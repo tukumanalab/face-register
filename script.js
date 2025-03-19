@@ -11,6 +11,7 @@ let isSingleFace = false;
 let registerBtn;
 let userIdInput;
 let registerStatus;
+let lastStatusMessage = ''; // 前回のステータスメッセージを保存する変数
 let findUrl = '';
 
 // DOMが読み込まれたら実行
@@ -162,7 +163,7 @@ function startFaceDetection() {
         } catch (error) {
             console.error('顔検出中にエラーが発生しました:', error);
         }
-    }, 100);
+    }, 500); // 100ミリ秒から500ミリ秒に変更して更新頻度を下げる
 }
 
 // 顔検出を停止する関数
@@ -191,18 +192,22 @@ function updateRegisterButtonState() {
         
         // 登録ボタンが押せない理由を表示
         if (registerStatus) {
+            let newStatusMessage = '';
+            
             if (!canRegister) {
-                let reason = '';
                 if (!isFaceDetected) {
-                    reason = '顔が検出されていません。カメラに顔を映してください。';
+                    newStatusMessage = '顔が検出されていません。カメラに顔を映してください。';
                 } else if (!isSingleFace) {
-                    reason = '複数の顔が検出されています。一人だけ映るようにしてください。';
+                    newStatusMessage = '複数の顔が検出されています。一人だけ映るようにしてください。';
                 } else if (!isUserIdEntered) {
-                    reason = 'IDを入力してください。';
+                    newStatusMessage = 'IDを入力してください。';
                 }
-                registerStatus.textContent = reason;
-            } else {
-                registerStatus.textContent = '';
+            }
+            
+            // 前回のメッセージと異なる場合のみ更新
+            if (newStatusMessage !== lastStatusMessage) {
+                registerStatus.textContent = newStatusMessage;
+                lastStatusMessage = newStatusMessage;
             }
         }
     }
@@ -288,21 +293,13 @@ async function saveRegisteredFaces(memberId, descriptor) {
     } catch (error) {
         console.error('Google Apps Scriptへの保存に失敗しました:', error);
         alert('サーバーへの保存に失敗しました。ネットワーク接続を確認してください。');
-        
-        // エラー時もローカルには保存
-        localStorage.setItem('registeredFaces', JSON.stringify(registeredFaces));
     } finally {
-        // 登録処理が完了したら登録ボタンの状態を更新
+        // 登録処理が完了したらステータスメッセージをクリア
+        registerStatus.textContent = '';
+        lastStatusMessage = '';
+        
+        // 登録ボタンの状態を更新
         updateRegisterButtonState();
-    }
-}
-
-// ローカルストレージから登録済み顔情報を読み込む関数
-function loadRegisteredFaces() {
-    const savedFaces = localStorage.getItem('registeredFaces');
-    if (savedFaces) {
-        registeredFaces = JSON.parse(savedFaces);
-        updateRegisteredFacesList();
     }
 }
 
