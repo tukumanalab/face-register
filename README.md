@@ -23,9 +23,9 @@
 ## 使用方法
 
 1. アプリケーションを開くと、カメラが自動的に起動します
-   - URLパラメータで保存先を指定できます: `index.html?url=<顔登録のpost先URL>`
+   - URLパラメータで保存先を指定できます: `index.html?url=<顔登録のpost先URL>` または `index.html?findUrl=<顔登録のpost先URL>`
    - URLパラメータで会員IDを指定できます: `index.html?memberId=<会員ID>`
-   - 両方のパラメータを同時に指定することも可能です: `index.html?url=<URL>&memberId=<会員ID>`
+   - 複数のパラメータを同時に指定することも可能です: `index.html?url=<URL>&memberId=<会員ID>` または `index.html?findUrl=<URL>&memberId=<会員ID>`
    - URLパラメータが指定されない場合は、デフォルトで `https://script.google.com/` に送信されます
    - memberIdパラメータが指定された場合、IDのテキストフィールドに自動的に入力されます
 2. 「登録」ボタンは以下の条件がすべて満たされた場合のみ有効になります：

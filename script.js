@@ -15,17 +15,14 @@ let apiUrl = 'https://script.google.com/'; // デフォルトのURL
 
 // DOMが読み込まれたら実行
 document.addEventListener('DOMContentLoaded', async () => {
-    // URLパラメータからAPI URLを取得
+    // URLパラメータからAPI URLを取得（findUrlパラメータは必須）
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('url')) {
         apiUrl = urlParams.get('url');
         console.log('API URL設定:', apiUrl);
-    }
-    
-    // URLパラメータからmemberIdを取得
-    if (urlParams.has('memberId')) {
-        const memberId = urlParams.get('memberId');
-        console.log('Member ID設定:', memberId);
+    } else if (urlParams.has('findUrl')) {
+        apiUrl = urlParams.get('findUrl');
+        console.log('API URL設定(findUrl):', apiUrl);
     }
     
     // 要素の取得
